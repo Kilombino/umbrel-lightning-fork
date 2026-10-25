@@ -100,20 +100,20 @@ function validateSettings(settings) {
     }
     // maxpendingchannels (max pending channels per peer)
     const maxPendingChannels = settings["maxpendingchannels"];
-    if (typeof maxPendingChannels !== "number" || maxPendingChannels < 0) {
-        errors.push(numberError("Maximum Pending Channels per Peer", 0));
+    if (!isInteger(maxPendingChannels, 0)) {
+        errors.push(integerError("Maximum Pending Channels per Peer", 0));
     }
     // minchansize (minimum channel size)
     const minChanSize = settings["minchansize"];
-    if (typeof minChanSize !== "number" || minChanSize < 1 || minChanSize > 16_777_215) {
-        errors.push(numberError("Minimum Channel Size", 1, 16_777_215));
+    if (!isInteger(minChanSize, 1, 16_777_215)) {
+        errors.push(integerError("Minimum Channel Size", 1, 16_777_215, "sats"));
     }
     // maxchansize (maximum channel size)
     const maxChanSize = settings["maxchansize"];
     const wumboChannels = settings["protocol.wumbo-channels"];
     const upperBound = wumboChannels ? 1_000_000_000 : 16_777_215;
-    if (typeof maxChanSize !== "number" || maxChanSize < 1 || maxChanSize > upperBound) {
-        errors.push(`Maximum Channel Size must be between 1 and ${upperBound} sats when Larger Channels are ${wumboChannels ? "enabled" : "disabled"}`);
+    if (!isInteger(maxChanSize, 1, upperBound)) {
+        errors.push(`Maximum Channel Size must be a whole number between 1 and ${upperBound} sats when Larger Channels are ${wumboChannels ? "enabled" : "disabled"}`);
     }
 
     if (minChanSize >= maxChanSize) {
@@ -121,8 +121,8 @@ function validateSettings(settings) {
     }
     // coop-close-target-confs (confirmations for channel close)
     const coopCloseTargetConfs = settings["coop-close-target-confs"];
-    if (typeof coopCloseTargetConfs !== "number" || coopCloseTargetConfs < 1) {
-        errors.push(numberError("Confirmations for Channel Close", 1));
+    if (!isInteger(coopCloseTargetConfs, 1, UINT32_MAX)) {
+        errors.push(integerError("Confirmations for Channel Close", 1, UINT32_MAX));
     }
     // stagger-initial-reconnect (delay initial reconnections)
     const staggerInitialReconnect = settings["stagger-initial-reconnect"];
@@ -130,14 +130,19 @@ function validateSettings(settings) {
         errors.push(booleanError("Delay Initial Reconnections"));
     }
     // max-cltv-expiry (maximum payment lock-up time)
+    // lnd refuses more than 65535 blocks, or less than the timelock delta
+    // (checked below).
     const maxCltvExpiry = settings["max-cltv-expiry"];
-    if (typeof maxCltvExpiry !== "number" || maxCltvExpiry < 1) {
-        errors.push(numberError("Maximum Payment Lock-up Time", 1));
+    if (!isInteger(maxCltvExpiry, 1, MAX_CLTV_DELTA)) {
+        errors.push(integerError("Maximum Payment Lock-up Time", 1, MAX_CLTV_DELTA, "blocks"));
     }
     // max-commit-fee-rate-anchors (maximum anchor channel commit fee rate)
+    // A whole number of sat/vB: lnd won't start on 2.5, or on a value too
+    // large for it to read, and the dashboard has no way to roll back a
+    // setting lnd won't start with. Above 10000 lnd lowers it to 10000.
     const maxCommitFeeRateAnchors = settings["max-commit-fee-rate-anchors"];
-    if (typeof maxCommitFeeRateAnchors !== "number" || maxCommitFeeRateAnchors < 1) {
-        errors.push(numberError("Maximum Anchor Channel Commit Fee Rate", "1 sat/vByte"));
+    if (!isInteger(maxCommitFeeRateAnchors, 1, MAX_COMMIT_FEE_RATE_ANCHORS)) {
+        errors.push(integerError("Maximum Anchor Channel Commit Fee Rate", 1, MAX_COMMIT_FEE_RATE_ANCHORS, "sat/vB"));
     }
     // accept-keysend (receive keysend payments)
     const acceptKeysend = settings["accept-keysend"];
@@ -181,23 +186,25 @@ function validateSettings(settings) {
 
     // bitcoin.defaultchanconfs (confirmations for channel open)
     const defaultChanConfs = settings["bitcoin.defaultchanconfs"];
-    if (typeof defaultChanConfs !== "number" || defaultChanConfs < 0) {
-        errors.push(numberError("Confirmations for Channel Open", 0));
+    if (!isInteger(defaultChanConfs, 0)) {
+        errors.push(integerError("Confirmations for Channel Open", 0));
     }
     // bitcoin.basefee (base forwarding fee)
     const baseFee = settings["bitcoin.basefee"];
-    if (typeof baseFee !== "number" || baseFee < 0) {
-        errors.push(numberError("Base Forwarding Fee", 0));
+    if (!isInteger(baseFee, 0)) {
+        errors.push(integerError("Base Forwarding Fee", 0, undefined, "msats"));
     }
     // bitcoin.feerate (forwarding fee rate)
     const feeRate = settings["bitcoin.feerate"];
-    if (typeof feeRate !== "number" || feeRate < 0) {
-        errors.push(numberError("Forwarding Fee Rate", 0));
+    if (!isInteger(feeRate, 0)) {
+        errors.push(integerError("Forwarding Fee Rate", 0, undefined, "ppm"));
     }
     // bitcoin.timelockdelta (timelock delta)
     const timeLockDelta = settings["bitcoin.timelockdelta"];
-    if (typeof timeLockDelta !== "number" || timeLockDelta < 18) {
-        errors.push(numberError("Timelock Delta", 18));
+    if (!isInteger(timeLockDelta, 18, MAX_CLTV_DELTA)) {
+        errors.push(integerError("Timelock Delta", 18, MAX_CLTV_DELTA, "blocks"));
+    } else if (isInteger(maxCltvExpiry, 1, MAX_CLTV_DELTA) && maxCltvExpiry < timeLockDelta) {
+        errors.push("Maximum Payment Lock-up Time must be at least the Timelock Delta.");
     }
 
     // TOR
@@ -243,8 +250,8 @@ function validateSettings(settings) {
     }
     // wtclient.sweep-fee-rate (watchtower client sweep fee rate)
     const sweepFeeRate = settings["wtclient.sweep-fee-rate"];
-    if (typeof sweepFeeRate !== "number" || sweepFeeRate < 0) {
-        errors.push(numberError("Watchtower Client Sweep Fee Rate", 0));
+    if (!isInteger(sweepFeeRate, 0)) {
+        errors.push(integerError("Watchtower Client Sweep Fee Rate", 0, undefined, "sat/vB"));
     }
 
     // ROUTER RPC
@@ -272,26 +279,26 @@ function validateSettings(settings) {
     }
     // routerrpc.attemptcost (failed payment cost)
     const attemptCost = settings["routerrpc.attemptcost"];
-    if (typeof attemptCost !== "number" || attemptCost < 0) {
-        errors.push(numberError("Failed Payment Cost", 0));
+    if (!isInteger(attemptCost, 0)) {
+        errors.push(integerError("Failed Payment Cost", 0, undefined, "sats"));
     }
     // routerrpc.attemptcostppm (proportional failed payment cost)
     const attemptCostPpm = settings["routerrpc.attemptcostppm"];
-    if (typeof attemptCostPpm !== "number" || attemptCostPpm < 0) {
-        errors.push(numberError("Proportional Failed Payment Cost", 0));
+    if (!isInteger(attemptCostPpm, 0)) {
+        errors.push(integerError("Proportional Failed Payment Cost", 0, undefined, "ppm"));
     }
     // routerrpc.maxmchistory (maximum mission control history)
     const maxMcHistory = settings["routerrpc.maxmchistory"];
-    if (typeof maxMcHistory !== "number" || maxMcHistory < 0) {
-        errors.push(numberError("Maximum Mission Control History", 0));
+    if (!isInteger(maxMcHistory, 0)) {
+        errors.push(integerError("Maximum Mission Control History", 0));
     }
 
     // CACHES
 
     // caches.channel-cache-size (maximum channel cache entries)
     const channelCacheSize = settings["caches.channel-cache-size"];
-    if (typeof channelCacheSize !== "number" || channelCacheSize < 1000) {
-        errors.push(numberError("Maximum Channel Cache Entries", 1000));
+    if (!isInteger(channelCacheSize, 1000)) {
+        errors.push(integerError("Maximum Channel Cache Entries", 1000));
     }
 
     // PROTOCOL
@@ -342,6 +349,23 @@ function timeError(settingName) {
 
 function numberError(settingName, min, max) {
     return `${settingName} must be ${max ? `between ${min} and ${max}` : `at least ${min}`}.`;
+}
+
+// lnd reads these settings as whole numbers (int, int64, uint32, uint64):
+// a fraction, or a number too large to write out exactly, stops it from
+// starting. Unbounded ones stop at the largest whole number JavaScript
+// holds exactly, which every one of those types can hold.
+const UINT32_MAX = 4_294_967_295;
+const MAX_CLTV_DELTA = 65_535;
+const MAX_COMMIT_FEE_RATE_ANCHORS = 10_000;
+
+function isInteger(value, min, max = Number.MAX_SAFE_INTEGER) {
+    return Number.isSafeInteger(value) && value >= min && value <= max;
+}
+
+function integerError(settingName, min, max, unit) {
+    const range = max === undefined ? `of at least ${min}` : `between ${min} and ${max}`;
+    return `${settingName} must be a whole number ${range}${unit ? ` ${unit}` : ""}.`;
 }
 
 module.exports = router;

@@ -133,3 +133,31 @@ test("the market rate's line says why nothing is quoted, or how it stands", () =
   assert.equal(line.variant, "muted");
   assert.match(line.text, /^Read 12 seconds ago; its BTCB2_USDC price agrees within 0\.5%; it moved 1\.2% in the last minutes/);
 });
+
+test("Advanced Settings refuses a fraction or a too-large number where lnd reads a whole one", async () => {
+  const { wholeNumberErrors } = await load("lnd-settings");
+  const good = {
+    maxpendingchannels: 1, minchansize: 20000, maxchansize: 16777215,
+    "coop-close-target-confs": 6, "max-cltv-expiry": 2016, "max-commit-fee-rate-anchors": 10,
+    "bitcoin.defaultchanconfs": 2, "bitcoin.basefee": 1000, "bitcoin.feerate": 1,
+    "bitcoin.timelockdelta": 80, "wtclient.sweep-fee-rate": 10, "routerrpc.attemptcost": 100,
+    "routerrpc.attemptcostppm": 1000, "routerrpc.maxmchistory": 1000,
+    "caches.channel-cache-size": 20000, "protocol.wumbo-channels": false,
+    "routerrpc.minrtprob": 0.01,
+  };
+  assert.deepEqual(wholeNumberErrors(good), []);
+  assert.deepEqual(wholeNumberErrors({ ...good, "max-commit-fee-rate-anchors": 10000 }), []);
+  for (const value of [2.5, 1e20, 0, 10001, ""]) {
+    assert.deepEqual(wholeNumberErrors({ ...good, "max-commit-fee-rate-anchors": value }), [
+      "Maximum Anchor Channel Commit Fee Rate must be a whole number between 1 and 10000 sat/vB.",
+    ]);
+  }
+  assert.deepEqual(wholeNumberErrors({ ...good, "bitcoin.basefee": 1.5 }), [
+    "Base Forwarding Fee must be a whole number of at least 0 msats.",
+  ]);
+  assert.equal(wholeNumberErrors({ ...good, maxchansize: 20000000 }).length, 1);
+  assert.deepEqual(wholeNumberErrors({ ...good, maxchansize: 20000000, "protocol.wumbo-channels": true }), []);
+  assert.deepEqual(wholeNumberErrors({ ...good, "max-cltv-expiry": 40 }), [
+    "Maximum Payment Lock-up Time must be at least the Timelock Delta.",
+  ]);
+});

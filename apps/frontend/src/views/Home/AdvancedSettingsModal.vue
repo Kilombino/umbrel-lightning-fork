@@ -513,6 +513,9 @@
                         class="advanced-settings-input"
                         id="max-commit-fee-rate-anchors"
                         type="number"
+                        min="1"
+                        max="10000"
+                        step="1"
                         v-model="settings['max-commit-fee-rate-anchors']"
                         number
                         ></b-form-input>
@@ -522,6 +525,7 @@
                   <small class="w-lg-75 d-block text-muted mt-1">
                     Set the maximum fee rate for commitments of anchor channels. A high enough 
                     value can ensure that the transaction is confirmed quickly on the blockchain.
+                    A whole number from 1 to 10000 sat/vB.
                   </small>
                 </div>
               </b-card-body>
@@ -1604,6 +1608,7 @@
 <script>
 import API from "@/helpers/api";
 import getErrorMessage from "@/helpers/error-message";
+import { wholeNumberErrors } from "@/helpers/lnd-settings";
 import cloneDeep from "lodash.clonedeep";
 import isEqual from "lodash.isequal";
 
@@ -1761,11 +1766,23 @@ export default {
         }
       }
 
-      this.isSettingsDisabled = true;
       this.showValidationErrors = false;
       this.showServerError = false;
 
       this.setSpecialCaseSettings();
+
+      // lnd won't start on a fraction, or a number too large to read, in
+      // a setting it reads as a whole number; nothing would roll it back.
+      if (!shouldRestoreDefaults) {
+        const errors = wholeNumberErrors(this.settings);
+        if (errors.length > 0) {
+          this.validationErrors = errors;
+          this.showValidationErrors = true;
+          return;
+        }
+      }
+
+      this.isSettingsDisabled = true;
 
       try {
         const response = await API.post(

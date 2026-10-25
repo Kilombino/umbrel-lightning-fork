@@ -117,3 +117,57 @@ test("resizing channels is a boolean setting, its choice marked", async () => {
   assert.equal(r.status, 400);
   assert.ok(r.body.validationErrors.some((e) => /Resize Channels/.test(e)));
 });
+
+test("the anchor commit fee rate is a whole number from 1 to 10000 sat/vB", async () => {
+  for (const value of [1, 10, 10_000]) {
+    written.length = 0;
+    const r = await post({ ...camel, maxCommitFeeRateAnchors: value });
+    assert.equal(r.status, 200, `${value}: ${JSON.stringify(r.body)}`);
+    assert.equal(written.length, 1);
+  }
+  for (const value of [0, 2.5, 10_001, 1e20, -1, "10"]) {
+    written.length = 0;
+    const r = await post({ ...camel, maxCommitFeeRateAnchors: value });
+    assert.equal(r.status, 400, String(value));
+    assert.equal(written.length, 0);
+    assert.deepEqual(r.body.validationErrors, [
+      "Maximum Anchor Channel Commit Fee Rate must be a whole number between 1 and 10000 sat/vB.",
+    ]);
+  }
+});
+
+test("a setting lnd reads as a whole number refuses a fraction or a number too large", async () => {
+  for (const key of [
+    "maxpendingchannels", "minchansize", "maxchansize", "coopCloseTargetConfs",
+    "maxCltvExpiry", "bitcoinDefaultchanconfs", "bitcoinBasefee", "bitcoinFeerate",
+    "bitcoinTimelockdelta", "wtclientSweepFeeRate", "routerrpcAttemptcost",
+    "routerrpcAttemptcostppm", "routerrpcMaxmchistory", "cachesChannelCacheSize",
+  ]) {
+    for (const value of [camel[key] + 0.5, 1e20]) {
+      written.length = 0;
+      const r = await post({ ...camel, [key]: value });
+      assert.equal(r.status, 400, `${key}=${value}`);
+      assert.equal(written.length, 0);
+      assert.ok(r.body.validationErrors.some((e) => /whole number/.test(e)), `${key}=${value}: ${r.body.validationErrors}`);
+    }
+  }
+});
+
+test("the lock-up time and timelock delta stay within what lnd starts with", async () => {
+  let r = await post({ ...camel, maxCltvExpiry: 65_536 });
+  assert.equal(r.status, 400);
+  r = await post({ ...camel, bitcoinTimelockdelta: 65_536 });
+  assert.equal(r.status, 400);
+  r = await post({ ...camel, maxCltvExpiry: 40, bitcoinTimelockdelta: 80 });
+  assert.equal(r.status, 400);
+  assert.deepEqual(r.body.validationErrors, ["Maximum Payment Lock-up Time must be at least the Timelock Delta."]);
+  written.length = 0;
+  r = await post({ ...camel, maxCltvExpiry: 80, bitcoinTimelockdelta: 80 });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+});
+
+test("the probabilities may still be fractions", async () => {
+  written.length = 0;
+  const r = await post({ ...camel, routerrpcMinrtprob: 0.25, routerrpcApriorihopprob: 0.75, routerrpcAprioriweight: 0.3 });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+});
