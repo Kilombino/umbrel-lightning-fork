@@ -153,6 +153,23 @@ test("a setting lnd reads as a whole number refuses a fraction or a number too l
   }
 });
 
+test("the watchtower client sweep fee rate is 0 or at least lnd's 4 sat/vB minimum", async () => {
+  for (const value of [0, 4, 10]) {
+    written.length = 0;
+    const r = await post({ ...camel, wtclientSweepFeeRate: value });
+    assert.equal(r.status, 200, `${value}: ${JSON.stringify(r.body)}`);
+  }
+  for (const value of [1, 2, 3]) {
+    written.length = 0;
+    const r = await post({ ...camel, wtclientSweepFeeRate: value });
+    assert.equal(r.status, 400, String(value));
+    assert.equal(written.length, 0);
+    assert.deepEqual(r.body.validationErrors, [
+      "Watchtower Client Sweep Fee Rate must be 0 (lnd's default) or a whole number of at least 4 sat/vB.",
+    ]);
+  }
+});
+
 test("the lock-up time and timelock delta stay within what lnd starts with", async () => {
   let r = await post({ ...camel, maxCltvExpiry: 65_536 });
   assert.equal(r.status, 400);

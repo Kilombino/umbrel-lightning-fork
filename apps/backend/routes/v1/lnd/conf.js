@@ -250,8 +250,11 @@ function validateSettings(settings) {
     }
     // wtclient.sweep-fee-rate (watchtower client sweep fee rate)
     const sweepFeeRate = settings["wtclient.sweep-fee-rate"];
-    if (!isInteger(sweepFeeRate, 0)) {
-        errors.push(integerError("Watchtower Client Sweep Fee Rate", 0, undefined, "sat/vB"));
+    // 0 is lnd's default; anything else is at least 4 sat/vB, lnd's minimum
+    // of 1000 sat/kw (wtpolicy.MinSweepFeeRate), below which it won't start
+    // with the watchtower client on.
+    if (!isInteger(sweepFeeRate, 0) || (sweepFeeRate > 0 && sweepFeeRate < 4)) {
+        errors.push("Watchtower Client Sweep Fee Rate must be 0 (lnd's default) or a whole number of at least 4 sat/vB.");
     }
 
     // ROUTER RPC

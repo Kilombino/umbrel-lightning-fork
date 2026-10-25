@@ -68,6 +68,13 @@ export function wholeNumberErrors(settings) {
       errors.push(wholeNumberError(name, min, max, unit));
     }
   }
+  // 0 is lnd's default; otherwise lnd needs at least 4 sat/vB (1000 sat/kw).
+  const sweep = settings["wtclient.sweep-fee-rate"];
+  if (isWholeNumber(sweep, 0) && sweep > 0 && sweep < 4) {
+    errors.push(
+      "Watchtower Client Sweep Fee Rate must be 0 (lnd's default) or a whole number of at least 4 sat/vB."
+    );
+  }
   const wumbo = settings["protocol.wumbo-channels"];
   const maxChanSize = wumbo ? 1000000000 : 16777215;
   if (!isWholeNumber(settings["maxchansize"], 1, maxChanSize)) {
