@@ -72,6 +72,31 @@ RUN set -eu; \
     rm -rf /var/lib/apt/lists/*; \
     rclone version | head -1
 
+# The CAs the image trusts. Eight eMudhra intermediates were found in
+# October 2026 to have private keys anyone can recover (CVE-2026-111943).
+# They chain to emSign ECC Root CA - G3, and through Sectigo's cross-signs to
+# Comodo AAA Services root; bookworm's ca-certificates 20250419~deb12u2
+# drops both, so the build refuses an older package. emSign Root CA - C1 and
+# emSign ECC Root CA - C3 are distrusted as well, as Mozilla removed them
+# (NSS 3.131.1, Alpine ca-certificates 20261020) at eMudhra's request in the
+# same week; emSign Root CA - G1 is kept, as Mozilla keeps it. The build
+# fails if any of these roots is still in the bundle.
+# Node uses that bundle (--use-openssl-ca) instead of the roots compiled
+# into Node 16, which still trust them; rclone, being Go, reads the bundle
+# already.
+RUN set -eu; \
+    ver="$(dpkg-query -W -f='${Version}' ca-certificates)"; \
+    dpkg --compare-versions "$ver" ge '20250419~deb12u2' || { echo "ca-certificates $ver still trusts the compromised eMudhra chains" >&2; exit 1; }; \
+    sed -i -E 's#^(mozilla/(emSign_Root_CA_-_C1|emSign_ECC_Root_CA_-_C3|emSign_ECC_Root_CA_-_G3|Comodo_AAA_Services_root)\.crt)$#!\1#' /etc/ca-certificates.conf; \
+    update-ca-certificates --fresh >/dev/null; \
+    subjects="$(openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout | grep '^subject=')"; \
+    for cn in 'emSign Root CA - C1' 'emSign ECC Root CA - C3' 'emSign ECC Root CA - G3' 'AAA Certificate Services'; do \
+      if printf '%s\n' "$subjects" | grep -qE "CN = $cn(,|\$)"; then echo "$cn is still trusted" >&2; exit 1; fi; \
+    done; \
+    printf '%s\n' "$subjects" | wc -l
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
+    NODE_OPTIONS=--use-openssl-ca
+
 # Change directory to '/app' 
 WORKDIR /app
 
