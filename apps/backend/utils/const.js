@@ -1,4 +1,6 @@
 /* eslint-disable id-length */
+const { parseMempoolApps, mergeMempoolApps } = require("./mempoolApps.js");
+
 module.exports = {
   LN_REQUIRED_CONFIRMATIONS: 3,
   LND_STATUS_CODES: {
@@ -73,8 +75,9 @@ module.exports = {
   // links. Each is offered when the wrapper set its API base (the app's web
   // UI, whose nginx serves /api/v1/fees/recommended); the browser-facing
   // address is a full URL (StartOS) or a port on the same host (Umbrel),
-  // with an onion address for a page opened over Tor.
-  MEMPOOL_APPS: [
+  // with an onion address for a page opened over Tor. Any others come as
+  // one list (MEMPOOL_APPS, see utils/mempoolApps.js).
+  MEMPOOL_APPS: mergeMempoolApps([
     // The StartOS package id "mempool" is both Start9's Mempool and the
     // Mempool Guide build, so the name the wrapper passes wins; without
     // one, both are named.
@@ -90,4 +93,5 @@ module.exports = {
       hiddenService: process.env[`${prefix}_HIDDEN_SERVICE`] || "",
     }))
     .filter(app => /^https?:\/\//.test(app.api)),
+  parseMempoolApps(process.env.MEMPOOL_APPS)),
 };
