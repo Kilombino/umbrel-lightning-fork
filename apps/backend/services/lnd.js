@@ -456,10 +456,18 @@ function getClosedChannels() {
     .then((grpcResponse) => grpcResponse.channels);
 }
 
-// Returns a list of all outgoing payments.
+// The newest outgoing payments. With no max_payments lnd returns its
+// first 100, the oldest, so a node with more never showed its latest.
+const PAYMENTS_SHOWN = 1000;
+
 function getPayments() {
   return initializeRPCClient().then(({ lightning }) =>
-    promiseify(lightning, lightning.ListPayments, {}, "get payments")
+    promiseify(
+      lightning,
+      lightning.ListPayments,
+      { max_payments: PAYMENTS_SHOWN, reversed: true },
+      "get payments"
+    )
   );
 }
 
