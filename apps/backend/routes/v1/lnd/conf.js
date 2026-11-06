@@ -241,7 +241,7 @@ function validateSettings(settings) {
     const watchtowerExternalip = settings["watchtower.externalip"];
     if (watchtowerExternalip !== undefined && watchtowerExternalip !== "" &&
         !isHostPort(watchtowerExternalip)) {
-        errors.push("Watchtower Address must be a host or IP address, optionally with :port, such as 192.168.1.20:9913");
+        errors.push("Watchtower Address must be a host or IP address, optionally with :port, such as 192.168.1.20:9914");
     }
     // wtclient.active (watchtower client)
     const wtclientActive = settings["wtclient.active"];

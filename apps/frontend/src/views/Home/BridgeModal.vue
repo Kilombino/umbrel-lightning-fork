@@ -78,7 +78,7 @@
         </ul>
         <div class="neu-card p-3 small">
           <template v-if="overview.platform === 'startos'">
-            <b>To turn it on:</b> in StartOS, open Lightning Fork's
+            <b>To turn it on:</b> in StartOS, open Lightning XBT's
             <b>Actions</b> and run <b>Bridge</b>. Choose "Lightning Fork runs
             one" and the node on the SHA256 chain it should read. This window then
             walks you through the rest.
@@ -97,7 +97,7 @@
             </template>
             <template v-else>
               <div class="mb-2">
-                Lightning Fork restarts to turn it on, which takes a minute.
+                Lightning XBT restarts to turn it on, which takes a minute.
                 The bridge's node is then created, which takes a few minutes
                 more the first time; this window follows along.
               </div>
@@ -706,7 +706,7 @@
                 <b-form-input id="bridge-fee-sha" v-model="pricing.feeToSHA256" type="number" step="0.01" min="0.31" max="19.99" class="neu-input rate-input mb-2" placeholder="Same" :disabled="pricing.busy"></b-form-input>
                 <label class="small font-weight-bold mb-1" for="bridge-fee-b2b">{{ directionName("toBLAKE2b") }}: fee if different (%)</label>
                 <b-form-input id="bridge-fee-b2b" v-model="pricing.feeToBLAKE2b" type="number" step="0.01" min="0.31" max="19.99" class="neu-input rate-input mb-2" placeholder="Same" :disabled="pricing.busy"></b-form-input>
-                <small class="d-block text-muted mb-2">Saving restarts Lightning Fork while the bridge is on.</small>
+                <small class="d-block text-muted mb-2">Saving restarts Lightning XBT while the bridge is on.</small>
                 <b-button size="sm" variant="primary" class="mr-2" :disabled="pricing.busy" @click="savePricing">{{ pricing.busy ? "Saving…" : "Save" }}</b-button>
                 <b-button size="sm" variant="link" :disabled="pricing.busy" @click="pricing.open = false">Cancel</b-button>
               </div>
@@ -869,7 +869,7 @@
           <small class="d-block text-muted mb-2">
             <template v-if="toggleNow.toBLAKE2b">On: payers on the SHA256 chain pay your bridge node, and Lightning Fork pays their BLAKE2b invoices from its own channels.</template>
             <template v-else>The other way round: payers on the SHA256 chain pay your bridge node, and Lightning Fork pays their BLAKE2b invoices from its own channels, which puts back on the bridge node what paying SHA256 invoices spends. It needs room to receive on the bridge node's channels and to send on Lightning Fork's.</template>
-            Changing it restarts Lightning Fork.
+            Changing it restarts Lightning XBT.
           </small>
           <b-button size="sm" :variant="toggleNow.toBLAKE2b ? 'outline-danger' : 'outline-primary'" :disabled="switching" @click="setDirections(!toggleNow.toBLAKE2b)">{{ switching ? "Restarting…" : toggleNow.toBLAKE2b ? "Stop paying BLAKE2b invoices" : "Pay BLAKE2b invoices too" }}</b-button>
         </div>
@@ -878,7 +878,7 @@
         </template>
         <template v-else>
           <small class="d-block mb-2">
-            Lightning Fork restarts and the bridge stops taking payments. It
+            Lightning XBT restarts and the bridge stops taking payments. It
             can be turned off only while no payment is in progress or needs
             you. The bridge's node keeps running and watching its channels,
             and everything it holds stays where it is.
@@ -1257,7 +1257,7 @@ export default {
       if (!overview) {
         if (!this.overview) {
           this.loadError =
-            "Could not ask Lightning Fork about the bridge. Please try again.";
+            "Could not ask Lightning XBT about the bridge. Please try again.";
         }
         return;
       }
@@ -1432,7 +1432,7 @@ export default {
         this.pricing = emptyPricing();
         this.load();
         if (res.data.restarting) {
-          this.notice = "Lightning Fork is restarting with the new pricing. This window catches up in a minute.";
+          this.notice = "Lightning XBT is restarting with the new pricing. This window catches up in a minute.";
         }
       } catch (error) {
         this.error = getErrorMessage(error, "Could not save the pricing. Please try again.");
@@ -1448,8 +1448,8 @@ export default {
         this.load();
         if (res.data.restarting) {
           this.notice = toBLAKE2b
-            ? "Lightning Fork is restarting to pay BLAKE2b invoices too. This window catches up in a minute."
-            : "Lightning Fork is restarting to stop paying BLAKE2b invoices.";
+            ? "Lightning XBT is restarting to pay BLAKE2b invoices too. This window catches up in a minute."
+            : "Lightning XBT is restarting to stop paying BLAKE2b invoices.";
         }
       } catch (error) {
         this.error = getErrorMessage(error, "Could not change the bridge. Please try again.");
@@ -1624,8 +1624,8 @@ export default {
         this.load();
         if (res.data.restarting) {
           this.notice = enabled
-            ? "Lightning Fork is restarting to turn the bridge on. This window catches up in a minute."
-            : "Lightning Fork is restarting to turn the bridge off.";
+            ? "Lightning XBT is restarting to turn the bridge on. This window catches up in a minute."
+            : "Lightning XBT is restarting to turn the bridge off.";
         }
       } catch (error) {
         this.error = getErrorMessage(

@@ -129,7 +129,7 @@ export default {
 
       const host = uri.split("@")[1] || uri;
 
-      return { value: uri, text: `Clearnet (${host.replace(/:9737$/, "")})` };
+      return { value: uri, text: `Clearnet (${host.replace(/:9738$/, "")})` };
     }
   },
   components: {

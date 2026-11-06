@@ -2,7 +2,7 @@
   <div
     class="d-flex flex-column align-items-center justify-content-center min-vh100 p-2"
   >
-    <img alt="Lightning Fork" src="@/assets/icon.png" class="mb-5 logo" />
+    <img alt="Lightning XBT" src="@/assets/icon.png" class="mb-5 logo" />
 
     <!-- <b-spinner class="my-4" variant="primary"></b-spinner> -->
     <small v-if="isRestarting" class="text-muted mb-3">Restarting...</small>
@@ -15,7 +15,7 @@
     <slot></slot>
     <div class="loading-footer text-center d-flex flex-column align-items-center py-4">
       <!-- <span class="loading-footer-text-top text-muted">By</span> -->
-      <span class="loading-footer-text-top text-primary font-weight-bold mt-2">Lightning Fork</span>
+      <span class="loading-footer-text-top text-primary font-weight-bold mt-2">Lightning XBT</span>
       <span class="chain-badge mt-1">Bitcoin BLAKE2b chain</span>
     </div>
   </div>

@@ -5,7 +5,7 @@
         <div
           class="d-flex flex-column align-items-center justify-content-center min-vh100 p-2"
         >
-          <img alt="Lightning Fork" src="@/assets/icon.png" class="mb-5 logo" />
+          <img alt="Lightning XBT" src="@/assets/icon.png" class="mb-5 logo" />
           <span class="text-muted w-75 text-center">
             <small
               >For security reasons this app cannot be embedded in an

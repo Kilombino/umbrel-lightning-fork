@@ -63,7 +63,7 @@
       </b-alert>
       <p v-if="known && !apps.length" class="text-muted small">
         No Mempool app was found. Install Mempool Pruned, or Mempool on a node
-        that follows the BLAKE2b chain, then restart Lightning Fork so it can
+        that follows the BLAKE2b chain, then restart Lightning XBT so it can
         reach the app.
       </p>
       <b-alert :show="Boolean(error)" variant="warning" class="small">{{ error }}</b-alert>

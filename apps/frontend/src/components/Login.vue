@@ -2,8 +2,8 @@
   <div
     class="d-flex flex-column align-items-center justify-content-center min-vh100 p-2"
   >
-    <img alt="Lightning Fork" src="@/assets/icon.png" class="mb-4 logo" />
-    <span class="text-primary font-weight-bold">Lightning Fork</span>
+    <img alt="Lightning XBT" src="@/assets/icon.png" class="mb-4 logo" />
+    <span class="text-primary font-weight-bold">Lightning XBT</span>
     <span class="chain-badge mt-1 mb-4">Bitcoin BLAKE2b chain</span>
 
     <b-form class="login-form" @submit.prevent="submit" novalidate>
@@ -44,7 +44,7 @@
         v-if="$store.state.system.platform === 'native'"
         class="d-block text-muted text-center mt-3"
         >The password is in ~/.config/lightning-fork/dashboard-password.json
-        on the computer that runs Lightning Fork.</small
+        on the computer that runs Lightning XBT.</small
       >
       <small v-else class="d-block text-muted text-center mt-3"
         >The password is in the Dashboard Password action on your StartOS

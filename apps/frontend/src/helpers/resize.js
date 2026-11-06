@@ -129,7 +129,7 @@ export function statusText(status, { platform, dead } = {}) {
       return "Your node is still catching up with the chain. Try again once it is synced.";
     case "disabled":
       return platform === "startos"
-        ? "Resizing is turned off. Turn it on in Lightning Fork's Actions > Channel Settings in StartOS."
+        ? "Resizing is turned off. Turn it on in Lightning XBT's Actions > Channel Settings in StartOS."
         : "Resizing is turned off. Turn it on in Advanced Settings > Channels.";
     default:
       return "This channel can't be resized right now.";

@@ -162,7 +162,7 @@
                       enhancing both latency and connection stability.
                     </p>
                     <p class="mb-0">
-                      Note: To enable incoming clearnet connections, you may need to forward port 9737 on your router. For greater privacy, you can disable Hybrid Mode;
+                      Note: To enable incoming clearnet connections, you may need to forward port 9738 on your router. For greater privacy, you can disable Hybrid Mode;
                       however, this may decrease reliability.
                     </p>
                   </small>
@@ -1058,13 +1058,13 @@
                       size="sm"
                       autocomplete="off"
                       spellcheck="false"
-                      placeholder="e.g. 192.168.1.20:9913"
+                      placeholder="e.g. 192.168.1.20:9914"
                       :value="settings['watchtower.externalip'] || ''"
                       @input="value => (settings['watchtower.externalip'] = value.trim())"
                     ></b-form-input>
                     <small class="d-block text-muted mb-2">
                       {{ $store.state.system.platform === "native" ? "This computer's" : "Your Umbrel's" }} LAN address, or a public host name forwarded
-                      to it, with port 9913. Leave empty to be reached over Tor
+                      to it, with port 9914. Leave empty to be reached over Tor
                       only.
                     </small>
                     <!-- if the setting is not yet saved -->

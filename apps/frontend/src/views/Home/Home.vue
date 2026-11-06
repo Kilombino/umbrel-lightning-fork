@@ -24,7 +24,7 @@
               <small v-else class="ml-1 text-warning">Starting</small>
             </div>
             <h3 class="font-weight-bold mb-0 mb-sm-1 app-title">
-              Lightning Fork
+              Lightning XBT
               <span class="chain-badge ml-1">Bitcoin BLAKE2b chain</span>
             </h3>
             <div v-if="alias" class="d-flex align-items-center node-identity mb-0 mb-sm-1" :title="nodeColor ? `Node color ${nodeColor}` : ''">
@@ -33,7 +33,7 @@
             </div>
             <span class="text-muted text-xs-small">
               {{
-                this.lndVersion ? `Lightning Fork ${this.lndVersion.split(" commit")[0]}, an LND fork` : "..."
+                this.lndVersion ? `Lightning Fork ${this.lndVersion.split(" commit")[0]} by Paul Lamb, an LND fork` : "..."
               }}
             </span>
           </div>
